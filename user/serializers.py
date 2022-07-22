@@ -82,8 +82,8 @@ class SigninService(serializers.Serializer):
 class GithubSigninService(serializers.Serializer):
     def execute(self):
         request = self.context.get("request")
-        client_id = os.environ.get(settings, "GITHUB_CLIENT_ID")
-        redirect_uri = resolve(request.path_info).url_name + reverse("user-account-github-callback")
+        client_id = os.getenv("GITHUB_CLIENT_ID")
+        redirect_uri = "https://recruit2022-api.wafflestudio.com/auth/signin/github/callback/"
         return redirect(
                 f"https://github.com/login/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&scope=read:user"
             )
@@ -94,17 +94,17 @@ class GithubCallbackService(serializers.Serializer):
 
     def validate(self, data):
         self.context["code"] = data.get("code", None)
-        if code is None:
+        if self.context["code"] is None:
             raise AuthenticationFailed("깃허브 로그인이 정상적으로 진행되지 않았습니다.")
         return data
 
-    def callback(self):
+    def execute(self):
         request = self.context.get("request")
-        client_id = os.environ.get("GITHUB_CLIENT_ID")
-        client_secrets = os.environ.get("GITHUB_CLIENT_SECRETS")
+        client_id = os.getenv("GITHUB_CLIENT_ID")
+        client_secrets = os.getenv("GITHUB_CLIENT_SECRETS")
         code = self.context.get("code")
         result = requests.post(
-            f"https://github.com/login/oauth/access_token?client_id={client_id}&client_secret={client_secret}&code={code}",
+            f"https://github.com/login/oauth/access_token?client_id={client_id}&client_secret={client_secrets}&code={code}",
             headers={"Accept": "application/json"}
         ).json()
         if hasattr(result, "error"):

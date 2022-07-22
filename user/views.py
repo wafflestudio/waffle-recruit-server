@@ -11,6 +11,7 @@ from .serializers import (
     GithubCallbackService
 )
 from .schemas import auth_viewset_schema
+import dotenv
 
 
 @auth_viewset_schema
@@ -51,18 +52,19 @@ class AuthViewSet(GenericViewSet):
         url_path="signin/github"
     )
     def github_signin(self, request):
+        dotenv.read_dotenv()
         serializer = self.get_serializer()
         return serializer.execute()
     
     @action(
         detail=False,
-        methods=["POST"],   
+        methods=["GET"],   
         permission_classes=(permissions.AllowAny,),
         serializer_class=GithubCallbackService,
-        url_path="signin/github/callback/"
+        url_path="signin/github/callback"
     )
     def github_callback(self, request):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.GET)
         serializer.is_valid(raise_exception=True)
         result = serializer.execute()
         return Response(result)
