@@ -76,8 +76,8 @@ def solve(user_cred, language, file_path, prob_num):
 
         ## below is now scripted
 
-        else:
-            raise Exception("language error")
+        # else:
+        #     raise Exception("language error")
         try:
             outs, errs = proc.communicate(timeout=1.1)
         except subprocess.TimeoutExpired:
