@@ -9,6 +9,9 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 import hashlib
 from django.db.transaction import atomic
+from django.shortcuts import redirect, reverse
+import requests
+import os
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -74,6 +77,47 @@ class SigninService(serializers.Serializer):
         user_data = UserSerializer(user).data
 
         return user_data, jwt_token_of(user)
+
+
+class GithubSigninService(serializers.Serializer):
+    def execute(self):
+        request = self.context.get("request")
+        client_id = os.environ.get(settings, "GITHUB_CLIENT_ID")
+        redirect_uri = resolve(request.path_info).url_name + reverse("user-account-github-callback")
+        return redirect(
+                f"https://github.com/login/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&scope=read:user"
+            )
+    
+
+class GithubCallbackService(serializers.Serializer):
+    code = serializers.CharField()
+
+    def validate(self, data):
+        self.context["code"] = data.get("code", None)
+        if code is None:
+            raise AuthenticationFailed("깃허브 로그인이 정상적으로 진행되지 않았습니다.")
+        return data
+
+    def callback(self):
+        request = self.context.get("request")
+        client_id = os.environ.get("GITHUB_CLIENT_ID")
+        client_secrets = os.environ.get("GITHUB_CLIENT_SECRETS")
+        code = self.context.get("code")
+        result = requests.post(
+            f"https://github.com/login/oauth/access_token?client_id={client_id}&client_secret={client_secret}&code={code}",
+            headers={"Accept": "application/json"}
+        ).json()
+        if hasattr(result, "error"):
+            return AuthenticationFailed("깃허브 로그인이 정상적으로 진행되지 않았습니다.")
+        access_token = result.get("access_token")
+        user_profile = requests.get(
+            "https://api.github.com/user",
+            headers={
+                "Authorization": f"token {access_token}",
+                "Accept": "application/json"
+            }
+        ).json()
+        return user_profile
 
 
 class SignoutService(serializers.Serializer):
