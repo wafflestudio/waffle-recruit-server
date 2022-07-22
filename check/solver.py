@@ -10,7 +10,7 @@ class CompileError(Exception):
     pass
 
 
-def solve(language, file_path, prob_num):
+def solve(user_cred, language, file_path, prob_num):
     print("file path: " + file_path)
     if int(prob_num) in range(0, 4):
         solutions = os.listdir(f"problems/{prob_num}/solutions")
@@ -55,29 +55,23 @@ def solve(language, file_path, prob_num):
     #     if errs:
     #         raise Exception(f"compile error: {errs.decode()}")
 
+
+    #권한 제거된 사용자 추가
+    subprocess.Popen(["bash", "../scripts/add_user.sh"])
+    
     for test_case_filename, solution_filename in zip(testcases, solutions):
-        test_case = open(f"problems/{prob_num}/testcases/{test_case_filename}", "r")
+        proc = subprocess.Popen(["bash", "../scripts/run_test.sh", user_cred, prob_num, language, test_case_filename])
+
+        # test_case = open(f"problems/{prob_num}/testcases/{test_case_filename}", "r")
         solution_file = open(f"problems/{prob_num}/solutions/{solution_filename}", "r")
         kwargs = {
             "stdout": subprocess.PIPE,
             "stderr": subprocess.PIPE,
-            "stdin": test_case,
+            # "stdin": test_case,
         }
-        print(file_path)
-        if language == "python":
-            proc = subprocess.Popen(["python3", file_path + 'main.py'], **kwargs)
-        elif language == "java":
-            proc = subprocess.Popen(["java", "-cp", file_path, "Main"], **kwargs)
-        elif language == "kotlin":
-            proc = subprocess.Popen(["java", "-jar", file_path + "main.jar"], **kwargs)
-        elif language == "javascript":
-            proc = subprocess.Popen(["node", file_path], **kwargs)
-        # [TODO] add c++
-        # (daeyong) 임시방편으로 ts를 cpp로 바꿔서 실행중
-        elif language == "typescript":
-            proc = subprocess.Popen([file_path + "main.out"], **kwargs)
-        # elif language == "typescript":
-        #     proc = subprocess.Popen(["node", file_path], **kwargs)
+
+        ## below is now scripted
+
         else:
             raise Exception("language error")
         try:
@@ -92,11 +86,14 @@ def solve(language, file_path, prob_num):
             raise RuntimeError(errs.decode())
 
         solution = solution_file.read()
-        test_case.close()
+        # test_case.close()
         solution_file.close()
         out = outs.decode()
         if out.rstrip('\n') != solution.rstrip('\n'):
             raise Exception(out)
-            #print("out: ", out)
-            #raise Exception(f"Wrong answer : your output: {repr(out)}")
+
+    #사용자 및 폴더 제거
+    subprocess.Popen(["bash", "../scripts/del_user.sh"])
+
+
     return True

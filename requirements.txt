@@ -10,7 +10,7 @@ click==7.1.2
 click-didyoumean==0.3.0
 click-plugins==1.1.1
 click-repl==0.2.0
-Django==4.0.6
+Django
 django-cors-headers==3.7.0
 django-filter==22.1
 djangorestframework==3.13.1
@@ -23,7 +23,7 @@ inflection==0.5.1
 jmespath==0.10.0
 jsonschema==4.7.2
 kombu==5.2.4
-numpy==1.23.1
+numpy
 prompt-toolkit==3.0.30
 PyJWT==2.4.0
 pyrsistent==0.18.1
