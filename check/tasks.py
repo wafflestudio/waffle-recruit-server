@@ -8,6 +8,8 @@ root_path = str(Path(__file__).parent.parent.resolve())
 
 @app.task(name='solver')
 def run_solver(language, file_path, prob_num):
+    if prob_num == 0:
+        return False, prob_num, {"error": "Wrong solution", "detail": "존재하지 않는 문제 번호입니다."}
     return True, prob_num, {}
 
 
