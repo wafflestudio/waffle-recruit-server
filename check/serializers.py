@@ -54,7 +54,7 @@ class SubmissionService(serializers.Serializer):
     def execute(self):
         validated_data = self.validated_data
         user = self.context['request'].user
-        credential = user.credential
+        user_id = "user"+str(user.id)
         prob_num = self.context['prob_num']
         last_submit = self.context.get('last_submit', None)
         req_data = validated_data['req_data']
@@ -62,7 +62,7 @@ class SubmissionService(serializers.Serializer):
             _task = AsyncResult(last_submit.task_id)
             _task.revoke()
             _task.forget()
-        file_path = f"codes/{credential}/{prob_num}/"
+        file_path = f"codes/{user_id}/{prob_num}/"
         
         try:
             shutil.rmtree(file_path)
@@ -88,7 +88,8 @@ class SubmissionService(serializers.Serializer):
             local_file.close()
         with open(file_path + json_filename, 'w') as local_file:
             json.dump(req_data, local_file)
-        task: AsyncResult = run_solver.delay(language, file_path, prob_num=prob_num)
+
+        task: AsyncResult = run_solver.delay(language, user_id, prob_num=prob_num)
         Submission.objects.create(user=user, task_id=task.id, prob_num=prob_num)
         return Response("제출이 완료되었습니다.", status=201)
 

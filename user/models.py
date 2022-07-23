@@ -48,7 +48,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=30, unique=True)
     major = models.CharField(max_length=30, null=True, choices=MAJOR_CHOICES)
     grade = models.IntegerField(null=True)
-    credential = models.TextField(null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     is_staff = models.BooleanField(default=False)
