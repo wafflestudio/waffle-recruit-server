@@ -94,3 +94,11 @@ class AuthViewSet(GenericViewSet):
         jwt_token = serializer.execute()
 
         return Response({"token": jwt_token})
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=(permissions.AllowAny,),
+    )
+    def ping(self, request):
+        return Response({"login": request.user.is_authenticated})

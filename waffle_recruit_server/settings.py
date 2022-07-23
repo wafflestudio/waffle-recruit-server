@@ -43,11 +43,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_filters',
     "drf_spectacular",
+    'corsheaders',
     'user',
     'check'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -157,3 +159,5 @@ STATIC_URL = '/static/'
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_BROKER", "redis://localhost:6379/0")
+
+CORS_ORIGIN_ALLOW_ALL = True
