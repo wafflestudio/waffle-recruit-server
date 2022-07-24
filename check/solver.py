@@ -63,6 +63,8 @@ def solve(language, user_id, prob_num):
     adduser_proc.wait()
     outs, errs = adduser_proc.communicate()
 
+    print(outs)
+
     for test_case_filename, solution_filename in zip(testcases, solutions):
         runtest_proc = subprocess.Popen(["bash", "./scripts/run_test.sh", user_id, prob_num, language, test_case_filename])
 
@@ -85,8 +87,10 @@ def solve(language, user_id, prob_num):
         if out.rstrip('\n') != solution.rstrip('\n'):
             raise Exception(out)
 
-    # #사용자 및 폴더 제거
-    deluser_proc = subprocess.Popen(["bash", "./scripts/del_user.sh"])
-    deluser_proc.wait()
+        return True
 
-    return True
+    # # #사용자 및 폴더 제거
+    # deluser_proc = subprocess.Popen(["bash", "./scripts/del_user.sh"])
+    # deluser_proc.wait()
+
+    # return True

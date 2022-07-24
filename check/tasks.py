@@ -8,7 +8,7 @@ root_path = str(Path(__file__).parent.parent.resolve())
 
 @app.task(name='solver')
 def run_solver(language, user_id, prob_num):
-    return True, prob_num, {}
+    # return True, prob_num, {}
 
     try:
         solve(language, user_id, prob_num)
