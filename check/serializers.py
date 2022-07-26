@@ -1,3 +1,4 @@
+from genericpath import exists
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
@@ -123,9 +124,89 @@ class ResultService(serializers.Serializer):
         return data
 
     def execute(self):
+        validated_data = self.validated_data
+
         # [TODO] Result랑 Submission 모델 정리하고 다시 생각
-        # result = Result.objects.filter(user=user, prob_num=prob_num).order_by('-time').first()
-        return Response({"result": "아직 몰라용"}, status=200)
+        # 대용) 결과 확인용으로 임시로 만듬
+        # 새로 풀면 어케 할지 고민
+        # 예외처리 아예 안되어있음
+        user = self.context['request'].user
+        prob_num = self.context['prob_num']
+        
+        solver_obj = Solver.objects.filter(user=user, prob_num=prob_num)
+        if solver_obj.exists():
+            return Response({"result": "맞음 (from solver obj)"}, status=200)
+
+        submission_obj = Submission.objects.filter(user=user, prob_num=prob_num).order_by('-submit_at').first()
+        task = AsyncResult(submission_obj.task_id)
+        if task.ready():
+            solved, original_prob_num, error = task.result
+            if solved:
+                Solver.objects.create(user=user, prob_num=prob_num)
+                task.forget()
+                return Response({"result": "맞음 (from submission obj)"}, status=200)
+            else:
+                task.forget()
+                return Response({"result": "틀림 (from submission obj)"}, status=200)
+
+
+    # def problem(request, prob_num):
+    
+     
+    #     try:
+    #         submission = Submission.objects.filter(user=request.user, prob_num=prob_num).get()
+    #         task_id = submission.task_id
+    #         if task_id == saved_indicator:
+    #             with open(
+    #                     f"codes/{Profile.objects.get(user=request.user).credential}/{prob_num}/{response_json_filename}") as f:
+    #                 task_result = json.load(f)
+    #         else:
+    #             task = AsyncResult(task_id)
+    #             if task.ready():
+    #                 result = task.result
+    #                 if isinstance(result, Exception):
+    #                     return JsonResponse({'error': repr(result)}, status=500)
+    #                 else:
+    #                     solved, original_prob_num, error = result
+    #                     if original_prob_num != prob_num:
+    #                         return JsonResponse({'error': 'invalid problem number'}, status=500)
+    #                     if not solved:
+    #                         if 'detail' in error:
+    #                             message = f"{error.get('error')}: {error.get('detail')}"
+    #                         else:
+    #                             message = error.get('error')
+    #                         task_result = {
+    #                             'status': 'wrong',
+    #                             'message': message,
+    #                         }
+    #                     else:
+    #                         if not already_solved:
+    #                             # First solve of problem
+    #                             Solver(problem_num=prob_num, user=request.user).save()
+    #                             task_result = {
+    #                                 'status': 'correct',
+    #                                 'message': 'correct',
+    #                             }
+    #                         else:
+    #                             # Already solved problem
+    #                             task_result = {
+    #                                 'status': 'correct',
+    #                                 'message': 'already correct',
+    #                             }
+    #                     with open(
+    #                             f"codes/{Profile.objects.get(user=request.user).credential}/{prob_num}/{response_json_filename}", "w") as f:
+    #                         json.dump(task_result, f)
+    #                     submission.task_id = saved_indicator
+    #                     submission.save()
+    #                     task.forget()
+    #             else:
+    #                 task_result = {
+    #                     'status': 'pending',
+    #                     'message': 'pending',
+    #                 }
+    #     except Submission.DoesNotExist:
+    #         task_result = None
+    #     return JsonResponse({'solved': already_solved or solved, 'task': task_result}, status=200)
 
 
 class SkeletonService(serializers.Serializer):
