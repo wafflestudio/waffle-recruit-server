@@ -14,14 +14,31 @@ class TimeoutError(Exception):
 class WrongImplementation(Exception):
     pass
 
-##############################
-## UNDER CONSTRUCTION ########
-##############################
+class InternalServerError(Exception):
+    pass
+
+
+
+def _add_user(user_id):
+    #권한 제거된 사용자 추가
+    adduser_proc = subprocess.Popen(f"bash ./scripts/add_user.sh {user_id}", shell=True)    
+    adduser_proc.wait()
+    adduser_proc.communicate()
+    return
+
+def _del_user(user_id):
+    # #사용자 및 폴더 제거
+    deluser_proc = subprocess.Popen(f"bash ./scripts/del_user.sh {user_id}", shell=True)
+    deluser_proc.wait()
+    deluser_proc.communicate()
+    return
+
 
 def solve(language, user_id, prob_num):
 
+ 
     file_path = f"codes/{user_id}/{prob_num}/"
-    print("file path: " + file_path)
+
     if int(prob_num) in range(0, 4):
         solutions = os.listdir(f"problems/{prob_num}/solutions")
         testcases = os.listdir(f"problems/{prob_num}/testcases")
@@ -32,13 +49,12 @@ def solve(language, user_id, prob_num):
 
 
     # Compile if needed
-
     if language == "java":
         compile_proc = subprocess.Popen(f"javac {file_path}*.java -d {file_path} -nowarn", shell=True, stderr=subprocess.PIPE)
         compile_proc.wait()
         outs, errs = compile_proc.communicate()
         if errs:
-            raise CompileError(errs.decode())
+            raise CompileError("컴파일 에러")
 
     elif language == "kotlin":
         compile_proc = subprocess.Popen(f"kotlinc {file_path}*.kt -include-runtime -d {file_path}main.jar -nowarn", shell=True,
@@ -46,7 +62,7 @@ def solve(language, user_id, prob_num):
         compile_proc.wait()
         outs, errs = compile_proc.communicate()
         if errs:
-            raise Exception(f"compile error: {errs.decode()}")
+            raise CompileError("컴파일 에러")
 
     # [TODO] add c++
     # (daeyong) 임시방편으로 ts를 cpp로 바꿔서 실행중
@@ -55,23 +71,12 @@ def solve(language, user_id, prob_num):
         compile_proc.wait()
         outs, errs = compile_proc.communicate()
         if errs:
-            raise Exception(f"compile error: {errs.decode()}")
+            raise CompileError("컴파일 에러")
 
-
-    #권한 제거된 사용자 추가
-    adduser_proc = subprocess.Popen(f"bash ./scripts/add_user.sh {user_id}", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)    
-    adduser_proc.wait()
-
-    try:
-        outs, errs = adduser_proc.communicate()
-    except Exception as e:
-        print("Exception ->", str(e))
-
-
+    _add_user(user_id)
 
     for test_case_filename, solution_filename in zip(testcases, solutions):
 
-        print(f"test_case_filename is {test_case_filename}")
         # get answer from user
         runtest_proc = subprocess.Popen(f"bash ./scripts/run_test.sh {user_id} {prob_num} {language} {test_case_filename}", shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)    
     
@@ -79,30 +84,25 @@ def solve(language, user_id, prob_num):
             outs, errs = runtest_proc.communicate(timeout=1.1)
         except subprocess.TimeoutExpired:
             runtest_proc.kill()
-            raise TimeoutError("시간 초과")
+            _del_user(user_id)
+            raise TimeoutError("시간 초과")            
         except Exception as e:
             runtest_proc.kill()
-            raise Exception("Server error")
+            _del_user(user_id)
+            raise RuntimeError("런타임 에러")
         if errs:
-            raise RuntimeError(errs.decode())
-
-
+            _del_user(user_id)
+            raise RuntimeError("런타임 에러")
 
         solution_file = open(f"problems/{prob_num}/solutions/{solution_filename}", "r")
         solution = solution_file.read()
         solution_file.close()
         out = outs.decode()
-        print(f"사용자의 답->{out}")
-
+        print(f"사용자의 답 [{out}]")
         if out.rstrip('\n') != solution.rstrip('\n'):
-            print("오답입니다~ ")
-            raise Exception(out)
+            raise WrongImplementation("오답")
+        # print(f"{test_case_filename} 맞았삼")
 
-        print("정답입니다~")
-        return True
+    _del_user(user_id) 
 
-    # # #사용자 및 폴더 제거
-    # deluser_proc = subprocess.Popen(["bash", "./scripts/del_user.sh"])
-    # deluser_proc.wait()
-
-    # return True
+    return True

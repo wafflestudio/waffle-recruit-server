@@ -12,18 +12,18 @@ then
 
 elif [ $LANG = 'cpp' ]
 then
-    sudo docker exec --user ${CREDENTIAL} test $CRED_PATH/main.out
+    sudo docker exec --user ${CREDENTIAL} test $CRED_PATH/main.out < problems/${NUMBER}/testcases/${TC_NUM}
 
 elif [ $LANG = 'java' ]
 then
-    sudo docker exec --user ${CREDENTIAL} test java -cp $CRED_PATH/Main
+    sudo docker exec --user ${CREDENTIAL} test java -cp $CRED_PATH/Main < problems/${NUMBER}/testcases/${TC_NUM}
 
 elif [ $LANG = 'javascript' ]
 then
-    sudo docker exec --user ${CREDENTIAL} test node $CRED_PATH
+    sudo docker exec --user ${CREDENTIAL} test node $CRED_PATH < problems/${NUMBER}/testcases/${TC_NUM}
 
 elif [ $LANG = 'kotlin' ]
 then
-    sudo docker exec --user ${CREDENTIAL} test java -jar $CRED_PATH/Main
+    sudo docker exec --user ${CREDENTIAL} test java -jar $CRED_PATH/Main < problems/${NUMBER}/testcases/${TC_NUM}
 
 fi

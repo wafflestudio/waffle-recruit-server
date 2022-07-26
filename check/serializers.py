@@ -25,8 +25,25 @@ LANGUAGE_CHOICES = (
     ('kotlin', 'kotlin'),
 )
 
+FILTER = {
+    "common": ["sudo", "gksudo", "rm -rf"],
+    "c++": ["system(", "popen(", "fork(", "waitpid("],
+    "python": ["__import__", "import os", "import subprocess", "import sys", "from os", "from subprocess","from sys",
+    ".system(", ".popen(", "exec(", "eval("],
+    "java": ["Runtime.", ".getRuntime(", ".exec(", "ProcessBuilder", "System.getProperty("],
+    "javascript": ["exec(", "child_process", "spawn("],
+    "kotlin": ["shellRun", "ShellLocation", "Runtime.", "getRuntime(", "exec(", "ProcessBuilder", ".command(", "Shell("]
+}
+
 class SubmissionService(serializers.Serializer):
     req_data = serializers.JSONField(required=True)
+
+    def _filtering(self, lang, code):
+        filter_list = FILTER[lang] + FILTER["common"]
+        for stopword in filter_list:
+            if stopword in code:
+                return False, stopword
+        return True, ""
 
     def validate(self, data):
         user = self.context['request'].user
@@ -76,6 +93,9 @@ class SubmissionService(serializers.Serializer):
         files = req_data['files']
         language = req_data['language']
         for file in files:
+            (res, filtered) = self._filtering(language, file['code'])
+            if res==False:
+                return Response({f"제출 실패. 다음 표현은 사용 불가합니다: {filtered}"}, status=400)
             if '..' in file['filename']:
                 return Response({"error": "invalid filename: `..` is not allowed"}, status=400)
             
