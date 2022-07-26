@@ -54,6 +54,7 @@ def solve(language, user_id, prob_num):
         compile_proc.wait()
         outs, errs = compile_proc.communicate()
         if errs:
+            print(errs) 
             raise CompileError("컴파일 에러")
 
     elif language == "kotlin":
@@ -67,7 +68,9 @@ def solve(language, user_id, prob_num):
     # [TODO] add c++
     # (daeyong) 임시방편으로 ts를 cpp로 바꿔서 실행중
     elif language == "typescript":
-        compile_proc = subprocess.Popen(f"gcc {file_path}*.cpp -o {file_path}main.out -lstdc++", shell=True, stderr=subprocess.PIPE)
+        # compile_proc = subprocess.Popen(f"gcc {file_path}*.cpp -o {file_path}main.out -lstdc++", shell=True, stderr=subprocess.PIPE)
+        compile_proc = subprocess.Popen(f"gcc {file_path}*.cpp -o {file_path}main.out", shell=True, stderr=subprocess.PIPE)
+
         compile_proc.wait()
         outs, errs = compile_proc.communicate()
         if errs:
@@ -101,7 +104,7 @@ def solve(language, user_id, prob_num):
         print(f"사용자의 답 [{out}]")
         if out.rstrip('\n') != solution.rstrip('\n'):
             raise WrongImplementation("오답")
-        # print(f"{test_case_filename} 맞았삼")
+        print(f"{test_case_filename} 맞았삼")
 
     _del_user(user_id) 
 
