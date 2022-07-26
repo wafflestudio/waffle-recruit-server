@@ -59,50 +59,47 @@ def solve(language, user_id, prob_num):
 
 
     #권한 제거된 사용자 추가
-    adduser_proc = subprocess.Popen(f"bash ./scripts/add_user.sh {user_id}", shell=True, stderr=subprocess.PIPE)    
+    adduser_proc = subprocess.Popen(f"bash ./scripts/add_user.sh {user_id}", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)    
     adduser_proc.wait()
 
     try:
         outs, errs = adduser_proc.communicate()
-        print("ADDUSER TRY")
     except Exception as e:
         print("Exception ->", str(e))
 
-    runtest_proc = subprocess.Popen(f"bash ./scripts/run_test.sh {user_id} {prob_num} {language} 1", shell=True, stderr=subprocess.PIPE)    
-    # runtest_proc = subprocess.Popen(["bash", "./scripts/run_test.sh", user_id, prob_num, language, 1])
-    runtest_proc.wait()
-    try:
-        outs, errs = runtest_proc.communicate()
-        print("RUNTEST TRY")
-    except Exception as e:
-        print("RUNTEST EXECPTION ->", str(e))
 
 
-    return True
-    # for test_case_filename, solution_filename in zip(testcases, solutions):
-    #     runtest_proc = subprocess.Popen(["bash", "./scripts/run_test.sh", user_id, prob_num, language, test_case_filename])
+    for test_case_filename, solution_filename in zip(testcases, solutions):
 
-    #     solution_file = open(f"problems/{prob_num}/solutions/{solution_filename}", "r")
+        print(f"test_case_filename is {test_case_filename}")
+        # get answer from user
+        runtest_proc = subprocess.Popen(f"bash ./scripts/run_test.sh {user_id} {prob_num} {language} {test_case_filename}", shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)    
+    
+        try:
+            outs, errs = runtest_proc.communicate(timeout=1.1)
+        except subprocess.TimeoutExpired:
+            runtest_proc.kill()
+            raise TimeoutError("시간 초과")
+        except Exception as e:
+            runtest_proc.kill()
+            raise Exception("Server error")
+        if errs:
+            raise RuntimeError(errs.decode())
 
-    #     try:
-    #         outs, errs = runtest_proc.communicate(timeout=1.1)
-    #     except subprocess.TimeoutExpired:
-    #         runtest_proc.kill()
-    #         raise TimeoutError("시간 초과")
-    #     except Exception as e:
-    #         runtest_proc.kill()
-    #         raise Exception("Server error")
-    #     if errs:
-    #         raise RuntimeError(errs.decode())
 
-    #     solution = solution_file.read()
-    #     solution_file.close()
-    #     out = outs.decode()
-    #     print(out)
-    #     # if out.rstrip('\n') != solution.rstrip('\n'):
-    #         # raise Exception(out)
 
-    #     return True
+        solution_file = open(f"problems/{prob_num}/solutions/{solution_filename}", "r")
+        solution = solution_file.read()
+        solution_file.close()
+        out = outs.decode()
+        print(f"사용자의 답->{out}")
+
+        if out.rstrip('\n') != solution.rstrip('\n'):
+            print("오답입니다~ ")
+            raise Exception(out)
+
+        print("정답입니다~")
+        return True
 
     # # #사용자 및 폴더 제거
     # deluser_proc = subprocess.Popen(["bash", "./scripts/del_user.sh"])
