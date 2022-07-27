@@ -9,6 +9,9 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 import hashlib
 from django.db.transaction import atomic
+from django.shortcuts import redirect, reverse
+import requests
+import os
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -69,6 +72,53 @@ class SigninService(serializers.Serializer):
     
     def execute(self):
         user = self.context.get("user")
+        update_last_login(None, user)
+        user_data = UserSerializer(user).data
+
+        return user_data, jwt_token_of(user)
+
+
+class GithubSigninService(serializers.Serializer):
+    def execute(self):
+        request = self.context.get("request")
+        client_id = os.getenv("GITHUB_CLIENT_ID")
+        redirect_uri = "https://recruit2022-api.wafflestudio.com/auth/signin/github/callback/"
+        # redirect_uri = "http://localhost:8000/auth/signin/github/callback/"
+        return redirect(
+                f"https://github.com/login/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&scope=read:user"
+            )
+    
+
+class GithubCallbackService(serializers.Serializer):
+    code = serializers.CharField()
+
+    def validate(self, data):
+        self.context["code"] = data.get("code", None)
+        if self.context["code"] is None:
+            raise AuthenticationFailed("깃허브 로그인이 정상적으로 진행되지 않았습니다.")
+        return data
+
+    def execute(self):
+        request = self.context.get("request")
+        client_id = os.getenv("GITHUB_CLIENT_ID")
+        client_secrets = os.getenv("GITHUB_CLIENT_SECRETS")
+        code = self.context.get("code")
+        result = requests.post(
+            f"https://github.com/login/oauth/access_token?client_id={client_id}&client_secret={client_secrets}&code={code}",
+            headers={"Accept": "application/json"}
+        ).json()
+        if hasattr(result, "error"):
+            return AuthenticationFailed("깃허브 로그인이 정상적으로 진행되지 않았습니다.")
+        access_token = result.get("access_token")
+        user_profile = requests.get(
+            "https://api.github.com/user",
+            headers={
+                "Authorization": f"token {access_token}",
+                "Accept": "application/json"
+            }
+        ).json()
+
+        user = User.objects.get_or_create(username=user_profile.get("login"), email=user_profile.get("email"))[0]
         update_last_login(None, user)
         user_data = UserSerializer(user).data
 
