@@ -11,6 +11,7 @@ class Solver(models.Model):
     prob_num = models.IntegerField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     solved_at = models.DateTimeField(auto_now_add=True)
+    last_try = models.IntegerField()
     
     def __str__(self):
         return str(self.user.username)
