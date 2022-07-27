@@ -1,3 +1,4 @@
 CREDENTIAL=$1
-sudo docker exec test userdel -r ${CREDENTIAL}
-sudo docker exec test rm -rf /home/${CREDENTIAL}
+CONTAINER_ID=$2
+sudo docker exec ${CONTAINER_ID} userdel -r ${CREDENTIAL}
+sudo docker exec ${CONTAINER_ID} rm -rf /home/${CREDENTIAL}
