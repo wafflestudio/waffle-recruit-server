@@ -11,7 +11,6 @@ from .serializers import (
     GithubCallbackService
 )
 from .schemas import auth_viewset_schema
-import dotenv
 
 
 @auth_viewset_schema
@@ -52,7 +51,6 @@ class AuthViewSet(GenericViewSet):
         url_path="signin/github"
     )
     def github_signin(self, request):
-        dotenv.read_dotenv()
         serializer = self.get_serializer()
         return serializer.execute()
     

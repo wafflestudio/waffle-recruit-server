@@ -84,6 +84,7 @@ class GithubSigninService(serializers.Serializer):
         request = self.context.get("request")
         client_id = os.getenv("GITHUB_CLIENT_ID")
         redirect_uri = "https://recruit2022-api.wafflestudio.com/auth/signin/github/callback/"
+        # redirect_uri = "http://localhost:8000/auth/signin/github/callback/"
         return redirect(
                 f"https://github.com/login/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&scope=read:user"
             )
@@ -117,7 +118,12 @@ class GithubCallbackService(serializers.Serializer):
                 "Accept": "application/json"
             }
         ).json()
-        return user_profile
+
+        user = User.objects.get_or_create(username=user_profile.get("login"), email=user_profile.get("email"))[0]
+        update_last_login(None, user)
+        user_data = UserSerializer(user).data
+
+        return user_data, jwt_token_of(user)
 
 
 class SignoutService(serializers.Serializer):
