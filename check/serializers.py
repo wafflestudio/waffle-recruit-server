@@ -55,8 +55,8 @@ class SubmissionService(serializers.Serializer):
         if prob_num < 1 or prob_num > 10:
             raise serializers.ValidationError("없는 문제 번호입니다.")
 
-        if Solver.objects.filter(user=user, prob_num=prob_num).exists():
-            raise serializers.ValidationError("이미 맞춘 문제입니다.")
+        # if Solver.objects.filter(user=user, prob_num=prob_num).exists():
+        #     raise serializers.ValidationError("이미 맞춘 문제입니다.")
 
         if datetime.now() > SUBMISSION_DUE:
             raise serializers.ValidationError("제출기간이 지났습니다.")
@@ -128,28 +128,36 @@ class ResultService(serializers.Serializer):
 
     def execute(self):
         validated_data = self.validated_data
-        # [TODO] Result랑 Submission 모델 정리하고 다시 생각
-        # 결과 확인용으로 임시로 만듬
-        # 새로 풀면 어케 할지 고민
-        # 예외처리 아예 안되어있음
         user = self.context['request'].user
         prob_num = self.context['prob_num']
         
-        solver_obj = Solver.objects.filter(user=user, prob_num=prob_num)
+        already_solved=False
+        solver_obj = Solver.objects.filter(user=user, prob_num=prob_num).first()
         if solver_obj.exists():
-            return Response({"result": "맞음 (from solver obj)"}, status=200)
+            already_solved=True
 
         submission_obj = Submission.objects.filter(user=user, prob_num=prob_num).order_by('-submit_at').first()
         task = AsyncResult(submission_obj.task_id)
+
+        msg = {}
         if task.ready():
             solved, original_prob_num, error = task.result
-            if solved:
-                Solver.objects.create(user=user, prob_num=prob_num)
-                task.forget()
-                return Response({"result": "맞음 (from submission obj)"}, status=200)
-            else:
-                task.forget()
-                return Response({"result": "틀림 (from submission obj)"}, status=200)
+            task.forget() # 태스크 지워주고 -> mry 관리에서 중요하다고 함
+            if solved and not already_solved: # 지금 맞았고, 기존에 맞춘 적 없었으면
+                Solver.objects.create(user=user, prob_num=prob_num, last_try=1)
+                msg = { "result": 1, "last_try": 1 } 
+            elif solved and already_solved: # 지금 맞았고, 기존에 맞춘 적 있었으면
+                msg = { "result": 1, "last_try": 1 }
+            elif not solved and already_solved: # 지금 틀렸고, 기존에 맞춘 적 있었으면
+                solver_obj.last_try=0 
+                solver_obj.save()
+                msg = { "result": 1, "last_try": 0 }
+            elif not solved and not already_solved: # 지금 틀렸고, 기존에도 틀렸으면
+                msg = { "result": 0, "last_try": 0 }
+        else:
+            msg = { "result": solver_obj.result, "last_try": solver_obj.last_try } # 지금 푼 적 없으면 (이미 task가 제거된 뒤면)
+
+        return Response(msg, status=200)
 
 class SkeletonService(serializers.Serializer):
     lang = serializers.ChoiceField(choices=LANGUAGE_CHOICES, required=True)
