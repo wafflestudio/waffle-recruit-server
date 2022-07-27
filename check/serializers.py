@@ -160,7 +160,7 @@ class ResultService(serializers.Serializer):
         return Response(msg, status=200)
 
 class SkeletonService(serializers.Serializer):
-    lang = serializers.ChoiceField(choices=LANGUAGE_CHOICES, required=True)
+    lang = serializers.ChoiceField(choices=LANGUAGE_CHOICES, required=True) 
 
     def validate(self, data):
         return data
