@@ -1,4 +1,5 @@
 CREDENTIAL=$1
-sudo docker exec test userdel -r ${CREDENTIAL}
-sudo docker exec test adduser ${CREDENTIAL}
-sudo docker cp codes/${CREDENTIAL} test:/home/
+CONTAINER_ID=$2
+sudo docker exec ${CONTAINER_ID} userdel -r ${CREDENTIAL}
+sudo docker exec ${CONTAINER_ID} adduser ${CREDENTIAL}
+sudo docker cp codes/${CREDENTIAL} ${CONTAINER_ID}:/home/

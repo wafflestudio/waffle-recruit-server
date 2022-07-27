@@ -8,9 +8,13 @@ from datetime import datetime, timedelta, timezone
 from celery.result import AsyncResult
 import shutil
 import os
+import subprocess ## test
+import random ## test
+from datetime import datetime ## test
 import hashlib
 import json
 import boto3
+
 from django.conf import settings
 
 json_filename = "juys8J1swR_solution.json"
@@ -38,6 +42,12 @@ FILTER = {
 
 class SubmissionService(serializers.Serializer):
     req_data = serializers.JSONField(required=True)
+
+    def _get_free_container(self):
+        get_cont_proc = subprocess.Popen('sudo docker stats --no-stream --format "{{.Container}}:{{.CPUPerc}}"', shell=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        get_cont_proc.wait()
+        out, err = get_cont_proc.communicate()
+        container_status = out.split("\n")
 
     def _filtering(self, lang, code):
         filter_list = FILTER[lang] + FILTER["common"]
@@ -70,6 +80,7 @@ class SubmissionService(serializers.Serializer):
         return data
     
     def execute(self):
+        # self._get_free_container()
         validated_data = self.validated_data
         user = self.context['request'].user
         user_id = "user"+str(user.id)
