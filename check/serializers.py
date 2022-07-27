@@ -128,7 +128,6 @@ class ResultService(serializers.Serializer):
 
     def execute(self):
         validated_data = self.validated_data
-
         # [TODO] Result랑 Submission 모델 정리하고 다시 생각
         # 결과 확인용으로 임시로 만듬
         # 새로 풀면 어케 할지 고민

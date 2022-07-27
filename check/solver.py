@@ -79,6 +79,7 @@ def solve(language, user_id, prob_num):
         compile_proc.wait()
         outs, errs = compile_proc.communicate()
         if errs:
+            print(errs)
             raise CompileError("컴파일 에러")
 
     elif language == "kotlin":
@@ -87,17 +88,17 @@ def solve(language, user_id, prob_num):
         compile_proc.wait()
         outs, errs = compile_proc.communicate()
         if errs:
+            print(errs)
             raise CompileError("컴파일 에러")
 
     # [TODO] add c++
     # (daeyong) 임시방편으로 ts를 cpp로 바꿔서 실행중
     elif language == "typescript":
-        compile_proc = subprocess.Popen(f"gcc {file_path}*.cpp -o {file_path}main.out -lstdc++", shell=True, stderr=subprocess.PIPE)
-        # compile_proc = subprocess.Popen(f"gcc {file_path}*.cpp -o {file_path}main.out", shell=True, stderr=subprocess.PIPE)
-
+        compile_proc = subprocess.Popen(f"g++ -std=c++11 {file_path}*.cpp -o {file_path}main.out", shell=True, stderr=subprocess.PIPE)
         compile_proc.wait()
         outs, errs = compile_proc.communicate()
         if errs:
+            print(errs)
             raise CompileError("컴파일 에러")
 
     container_selected, container_id = _get_free_container()
