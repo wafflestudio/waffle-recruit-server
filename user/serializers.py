@@ -49,7 +49,6 @@ class SignupService(serializers.ModelSerializer):
     @atomic
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
-        user.credential = hashlib.sha256(str(user.id).encode()).hexdigest()
         user.save()
         user_data = UserSerializer(user).data
 
