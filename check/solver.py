@@ -72,7 +72,6 @@ def solve(language, user_id, prob_num):
     else:
         raise InternalServerError("problem number error")
 
-
     # Compile if needed
     if language == "java":
         compile_proc = subprocess.Popen(f"javac {file_path}*.java -d {file_path} -nowarn", shell=True, stderr=subprocess.PIPE)
@@ -81,7 +80,7 @@ def solve(language, user_id, prob_num):
         if errs:
             print(errs)
             raise CompileError("컴파일 에러")
-
+    
     elif language == "kotlin":
         compile_proc = subprocess.Popen(f"kotlinc-jvm {file_path}*.kt -include-runtime -d {file_path}main.jar -nowarn", shell=True,
                                         stderr=subprocess.PIPE)

@@ -132,8 +132,9 @@ class ResultService(serializers.Serializer):
         prob_num = self.context['prob_num']
         
         already_solved=False
-        solver_obj = Solver.objects.filter(user=user, prob_num=prob_num).first()
+        solver_obj = Solver.objects.filter(user=user, prob_num=prob_num)
         if solver_obj.exists():
+            solver_obj= solver_obj.first()
             already_solved=True
 
         submission_obj = Submission.objects.filter(user=user, prob_num=prob_num).order_by('-submit_at').first()
@@ -144,9 +145,12 @@ class ResultService(serializers.Serializer):
             solved, original_prob_num, error = task.result
             task.forget() # 태스크 지워주고 -> mry 관리에서 중요하다고 함
             if solved and not already_solved: # 지금 맞았고, 기존에 맞춘 적 없었으면
+                print("처음꺼")
                 Solver.objects.create(user=user, prob_num=prob_num, last_try=1)
                 msg = { "result": 1, "last_try": 1 } 
             elif solved and already_solved: # 지금 맞았고, 기존에 맞춘 적 있었으면
+                solver_obj.last_try=1 
+                solver_obj.save()
                 msg = { "result": 1, "last_try": 1 }
             elif not solved and already_solved: # 지금 틀렸고, 기존에 맞춘 적 있었으면
                 solver_obj.last_try=0 
@@ -155,8 +159,10 @@ class ResultService(serializers.Serializer):
             elif not solved and not already_solved: # 지금 틀렸고, 기존에도 틀렸으면
                 msg = { "result": 0, "last_try": 0 }
         else:
-            msg = { "result": solver_obj.result, "last_try": solver_obj.last_try } # 지금 푼 적 없으면 (이미 task가 제거된 뒤면)
-
+            if already_solved: # 기존에 푼 적 있지만, 이미 task를 지운 후라면
+                msg = { "result": 1, "last_try": solver_obj.last_try } 
+            else: # 기존에 푼 적 없고, task도 없는 상태라면
+                msg = { "result": 0, "last_try": 0 } 
         return Response(msg, status=200)
 
 class SkeletonService(serializers.Serializer):
