@@ -16,9 +16,7 @@ import boto3
 from django.conf import settings
 
 json_filename = "juys8J1swR_solution.json"
-response_json_filename = "juys8J1swR_response.json"
-saved_indicator = "SAVED_IN_FILE"
-SUBMISSION_DUE = datetime.strptime("2022-08-25 00:00:00", "%Y-%m-%d %H:%M:%S")  # 8/19 00:00:30 KST (UTC+9)
+SUBMISSION_DUE = datetime.strptime("2022-08-30 00:00:00", "%Y-%m-%d %H:%M:%S")  # 8/19 00:00:30 KST (UTC+9)
 
 LANGUAGE_CHOICES = (
     ('c++', 'c++'),
@@ -52,11 +50,8 @@ class SubmissionService(serializers.Serializer):
         user = self.context['request'].user
         prob_num = self.context['prob_num']
         print("prob_num: ", prob_num)
-        if prob_num < 1 or prob_num > 10:
+        if prob_num < 1 or prob_num > 3:
             raise serializers.ValidationError("없는 문제 번호입니다.")
-
-        # if Solver.objects.filter(user=user, prob_num=prob_num).exists():
-        #     raise serializers.ValidationError("이미 맞춘 문제입니다.")
 
         if datetime.now() > SUBMISSION_DUE:
             raise serializers.ValidationError("제출기간이 지났습니다.")
@@ -72,7 +67,6 @@ class SubmissionService(serializers.Serializer):
         return data
     
     def execute(self):
-        # self._get_free_container()
         validated_data = self.validated_data
         user = self.context['request'].user
         user_id = "user"+str(user.id)
@@ -99,7 +93,7 @@ class SubmissionService(serializers.Serializer):
         for file in files:
             (res, filtered) = self._filtering(language, file['code'])
             if res==False:
-                return Response({f"제출 실패. 다음 표현은 사용 불가합니다: {filtered}"}, status=400)
+                return Response({"error": f"제출 실패. 다음 표현은 사용 불가합니다: {filtered}"}, status=400)
             if '..' in file['filename']:
                 return Response({"error": "invalid filename: `..` is not allowed"}, status=400)
             
@@ -115,7 +109,7 @@ class SubmissionService(serializers.Serializer):
 
         task: AsyncResult = run_solver.delay(language, user_id, prob_num=prob_num)
         Submission.objects.create(user=user, task_id=task.id, prob_num=prob_num)
-        return Response("제출이 완료되었습니다.", status=201)
+        return Response({"msg": "제출이 완료되었습니다."}, status=201)
 
 
 class ResultService(serializers.Serializer):

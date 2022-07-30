@@ -21,4 +21,3 @@ class Submission(models.Model):
     prob_num = models.PositiveSmallIntegerField()
     task_id = models.CharField(max_length=36)
     submit_at = models.DateTimeField(auto_now_add=True)
-    result = models.TextField(null=True)
