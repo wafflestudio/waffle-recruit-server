@@ -18,7 +18,7 @@ from django.conf import settings
 json_filename = "juys8J1swR_solution.json"
 response_json_filename = "juys8J1swR_response.json"
 saved_indicator = "SAVED_IN_FILE"
-SUBMISSION_DUE = datetime.strptime("2022-07-30 00:00:00", "%Y-%m-%d %H:%M:%S")  # 8/19 00:00:30 KST (UTC+9)
+SUBMISSION_DUE = datetime.strptime("2022-08-25 00:00:00", "%Y-%m-%d %H:%M:%S")  # 8/19 00:00:30 KST (UTC+9)
 
 LANGUAGE_CHOICES = (
     ('c++', 'c++'),
