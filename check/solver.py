@@ -96,6 +96,7 @@ def solve(language, user_id, prob_num):
         compile_proc = subprocess.Popen(f"g++ -std=c++11 {file_path}*.cpp -o {file_path}main.out", shell=True, stderr=subprocess.PIPE)
         compile_proc.wait()
         outs, errs = compile_proc.communicate()
+        language = "cpp"
         if errs:
             print(errs)
             raise CompileError("컴파일 에러")
@@ -138,6 +139,6 @@ def solve(language, user_id, prob_num):
             raise WrongImplementation("오답")
         print(f"{test_case_filename} 맞았삼")
 
-    _del_user(user_id, container_id) 
+    # _del_user(user_id, container_id) 
 
     return True
