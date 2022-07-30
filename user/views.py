@@ -10,10 +10,7 @@ from .serializers import (
     GithubSigninService, 
     GithubCallbackService
 )
-from .schemas import auth_viewset_schema
 
-
-@auth_viewset_schema
 class AuthViewSet(GenericViewSet):
     @action(
         detail=False,

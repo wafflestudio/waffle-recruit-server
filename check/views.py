@@ -6,7 +6,6 @@ from rest_framework.decorators import action
 from check.models import Solver
 from .serializers import SubmissionService, SkeletonService, ResultService
 
-
 class SubmissionViewSet(GenericViewSet):
     @action(
         detail=True,
