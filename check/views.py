@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from check.models import Solver
-from .serializers import SubmissionService, SkeletonService, ResultService
+from .serializers import SubmissionService, SkeletonService, ResultService, LoadTestService
 
 class SubmissionViewSet(GenericViewSet):
     @action(
@@ -45,6 +45,17 @@ class SubmissionViewSet(GenericViewSet):
         serializer_class=SkeletonService,
     )
     def skeleton(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return serializer.execute()
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=(),
+        serializer_class=LoadTestService,
+    )
+    def loadtest(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return serializer.execute()

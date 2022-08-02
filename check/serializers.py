@@ -178,3 +178,43 @@ class SkeletonService(serializers.Serializer):
         return Response({"url": url}, status=200)
 
 
+class LoadTestService(serializers.Serializer):
+
+    def validate(self, data):
+        return data
+
+    def execute(self):
+        validated_data = self.validated_data
+        user_id = "loadtest_user01"
+        prob_num = "1"
+        req_data = {
+                "language": "python",
+                "files": [{
+                    "filename": "main.py",
+                    "code": "import time;time.sleep(3)"
+                }]
+        }
+        file_path = f"codes/{user_id}/{prob_num}/"
+        
+        try:
+            shutil.rmtree(file_path)
+        except Exception:
+            pass
+        try:
+            os.makedirs(file_path)
+        except Exception:
+            pass
+
+        files = req_data['files']
+        language = req_data['language']
+        for file in files:
+            test_filename = file['filename'].replace("index.ts", "main.cpp") 
+            local_file = open(file_path + test_filename, 'w')
+            local_file.write(file['code'])
+            local_file.close()
+        with open(file_path + json_filename, 'w') as local_file:
+            json.dump(req_data, local_file)
+
+        task: AsyncResult = run_solver.delay(language, user_id, prob_num=prob_num)
+        #Submission.objects.create(user=user, task_id=task.id, prob_num=prob_num)
+        return Response({"msg": "제출이 완료되었습니다."}, status=201)

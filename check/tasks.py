@@ -27,4 +27,5 @@ def run_solver(language, user_id, prob_num):
     except InternalServerError as e:
         return False, prob_num, {"error": "Interal server error"} 
     except Exception as e:
+        print(e.decode())
         return False, prob_num, {"error": "Wrong implementation"}

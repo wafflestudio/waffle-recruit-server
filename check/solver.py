@@ -100,6 +100,8 @@ def solve(language, user_id, prob_num):
         if errs:
             print(errs)
             raise CompileError("컴파일 에러")
+    
+
 
     container_selected, container_id = _get_free_container()
     if not container_selected:
