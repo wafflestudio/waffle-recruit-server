@@ -126,7 +126,8 @@ def solve(language, user_id, prob_num):
             _del_user(user_id, container_id)
             raise RuntimeError("런타임 에러")
         if errs:
-            print(errs)
+            print(f"{test_case_filename}에서 발생함 ㅇㅇ")
+            print(errs.decode())
             _del_user(user_id, container_id)
             raise RuntimeError("런타임 에러")
 
@@ -134,11 +135,12 @@ def solve(language, user_id, prob_num):
         solution = solution_file.read()
         solution_file.close()
         out = outs.decode()
-        print(f"사용자의 답 [{out}]")
-        if out.rstrip('\n') != solution.rstrip('\n'):
+        print("사용자의 답, ", out.rstrip('\n'))
+        print("정답, ", solution.rstrip('\n'))
+        if out.strip() != solution.strip():
             raise WrongImplementation("오답")
         print(f"{test_case_filename} 맞았삼")
 
-    # _del_user(user_id, container_id) 
+    _del_user(user_id, container_id) 
 
     return True

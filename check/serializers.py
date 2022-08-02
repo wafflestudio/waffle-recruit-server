@@ -101,7 +101,7 @@ class SubmissionService(serializers.Serializer):
             # (daeyong) 임시방편으로 ts파일을 main.cpp로 강제변환중.
             test_filename = file['filename'].replace("index.ts", "main.cpp") 
             local_file = open(file_path + test_filename, 'w')
-            #local_file = open(file_path + file['filename'], 'w')
+          #  return Response(file['code'], status=201)
             local_file.write(file['code'])
             local_file.close()
         with open(file_path + json_filename, 'w') as local_file:
