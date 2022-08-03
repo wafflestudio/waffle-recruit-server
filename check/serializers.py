@@ -50,7 +50,7 @@ class SubmissionService(serializers.Serializer):
         user = self.context['request'].user
         prob_num = self.context['prob_num']
         print("prob_num: ", prob_num)
-        if prob_num < 1 or prob_num > 3:
+        if prob_num < 0 or prob_num > 3:
             raise serializers.ValidationError("없는 문제 번호입니다.")
 
         if datetime.now() > SUBMISSION_DUE:
