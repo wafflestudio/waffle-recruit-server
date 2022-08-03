@@ -28,9 +28,9 @@ LANGUAGE_CHOICES = (
 
 FILTER = {
     "common": ["sudo", "gksudo", "rm -rf"],
-    "typescript": ["system(", "popen(", "fork(", "waitpid("], ## typescript -> cpp
+    "c++": ["system(", "popen(", "fork(", "waitpid("], ## typescript -> cpp
     "python": ["__import__", "import os", "import subprocess", "import sys", "from os", "from subprocess","from sys",
-    ".system(", ".popen(", "exec(", "eval("],
+    ".system(", ".popen(", "exec("],
     "java": ["Runtime.", ".getRuntime(", ".exec(", "ProcessBuilder", "System.getProperty("],
     "javascript": ["exec(", "child_process", "spawn("],
     "kotlin": ["shellRun", "ShellLocation", "Runtime.", "getRuntime(", "exec(", "ProcessBuilder", ".command(", "Shell("]
@@ -90,6 +90,7 @@ class SubmissionService(serializers.Serializer):
 
         files = req_data['files']
         language = req_data['language']
+        print(language)
         for file in files:
             (res, filtered) = self._filtering(language, file['code'])
             if res==False:
@@ -97,11 +98,7 @@ class SubmissionService(serializers.Serializer):
             if '..' in file['filename']:
                 return Response({"error": "invalid filename: `..` is not allowed"}, status=400)
             
-            # [TODO] Replace typescript with cpp
-            # (daeyong) 임시방편으로 ts파일을 main.cpp로 강제변환중.
-            test_filename = file['filename'].replace("index.ts", "main.cpp") 
-            local_file = open(file_path + test_filename, 'w')
-          #  return Response(file['code'], status=201)
+            local_file = open(file_path + file['filename'], 'w')
             local_file.write(file['code'])
             local_file.close()
         with open(file_path + json_filename, 'w') as local_file:
@@ -216,5 +213,5 @@ class LoadTestService(serializers.Serializer):
             json.dump(req_data, local_file)
 
         task: AsyncResult = run_solver.delay(language, user_id, prob_num=prob_num)
-        #Submission.objects.create(user=user, task_id=task.id, prob_num=prob_num)
+        Submission.objects.create(user=user, task_id=task.id, prob_num=prob_num)
         return Response({"msg": "제출이 완료되었습니다."}, status=201)

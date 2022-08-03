@@ -1,3 +1,17 @@
+sudo docker rm -f test1
+sudo docker rm -f test2
+sudo docker rm -f test3
+sudo docker rm -f test4
+sudo docker rm -f test5
+sudo docker rm -f test6
+sudo docker rm -f test7
+sudo docker rm -f test8
+
+
+
+
+
+
 sudo docker create -it --network none --name test1 whizkyu/recruit:1.1 > /dev/null
 sudo docker create -it --network none --name test2 whizkyu/recruit:1.1 > /dev/null
 sudo docker create -it --network none --name test3 whizkyu/recruit:1.1 > /dev/null

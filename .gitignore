@@ -4,7 +4,7 @@ dump.rdb
 reset_all.sh
 user/migrations
 check/migrations
-
+problems/
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/django,python,jetbrains+all,react

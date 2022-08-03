@@ -90,9 +90,8 @@ def solve(language, user_id, prob_num):
             print(errs)
             raise CompileError("컴파일 에러")
 
-    # [TODO] add c++
-    # (daeyong) 임시방편으로 ts를 cpp로 바꿔서 실행중
-    elif language == "typescript":
+    elif language == "c++":
+        print("CPP CAME!!")
         compile_proc = subprocess.Popen(f"g++ -std=c++11 {file_path}*.cpp -o {file_path}main.out", shell=True, stderr=subprocess.PIPE)
         compile_proc.wait()
         outs, errs = compile_proc.communicate()
