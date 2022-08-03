@@ -105,7 +105,7 @@ class SubmissionService(serializers.Serializer):
             json.dump(req_data, local_file)
 
         task: AsyncResult = run_solver.delay(language, user_id, prob_num=prob_num)
-        Submission.objects.create(user=user, task_id=task.id, prob_num=prob_num)
+        Submission.objects.create(user=user, task_id=task.id, prob_num=prob_num, finished=0)
         return Response({"msg": "제출이 완료되었습니다."}, status=201)
 
 
@@ -132,11 +132,12 @@ class ResultService(serializers.Serializer):
         task = AsyncResult(submission_obj.task_id)
 
         msg = {}
-        if task.ready():
+        if task.ready(): # 채점이 끝났으면
+            submission_obj.finished=1 # 끝났다고 이야기해주고
+            submission_obj.save() # 저장
             solved, original_prob_num, error = task.result
             task.forget() # 태스크 지워주고 -> mry 관리에서 중요하다고 함
             if solved and not already_solved: # 지금 맞았고, 기존에 맞춘 적 없었으면
-                print("처음꺼")
                 Solver.objects.create(user=user, prob_num=prob_num, last_try=1)
                 msg = { "result": 1, "last_try": 1 } 
             elif solved and already_solved: # 지금 맞았고, 기존에 맞춘 적 있었으면
@@ -150,9 +151,11 @@ class ResultService(serializers.Serializer):
             elif not solved and not already_solved: # 지금 틀렸고, 기존에도 틀렸으면
                 msg = { "result": 0, "last_try": 0 }
         else:
-            if already_solved: # 기존에 푼 적 있지만, 이미 task를 지운 후라면
+            if submission_obj.finished == 0: # 채점중입니다
+                msg = {"result": -1, "last_try": solver_obj.last_try}
+            elif already_solved: # 기존에 풀었고, 이미 task가 지워진 후라면
                 msg = { "result": 1, "last_try": solver_obj.last_try } 
-            else: # 기존에 푼 적 없고, task도 없는 상태라면
+            else: # 기존에 푼 적 없고(or 틀렸고), task도 없는 상태라면 -> 여기 걸릴 일은 없어야함
                 msg = { "result": 0, "last_try": 0 } 
         return Response(msg, status=200)
 
