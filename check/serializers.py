@@ -151,12 +151,16 @@ class ResultService(serializers.Serializer):
             elif not solved and not already_solved: # 지금 틀렸고, 기존에도 틀렸으면
                 msg = { "result": 0, "last_try": 0 }
         else:
-            if submission_obj.finished == 0: # 채점중입니다
-                msg = {"result": -1, "last_try": solver_obj.last_try}
-            elif already_solved: # 기존에 풀었고, 이미 task가 지워진 후라면
-                msg = { "result": 1, "last_try": solver_obj.last_try } 
-            else: # 기존에 푼 적 없고(or 틀렸고), task도 없는 상태라면 -> 여기 걸릴 일은 없어야함
-                msg = { "result": 0, "last_try": 0 } 
+            if not (submission_obj.finished) : # 채점 안끝났음
+                if not already_solved : # 푼적 없으면
+                    msg = {"result": 0, "last_try": -1}             
+                else: # 푼적 있으면
+                    msg = {"result": 1, "last_try": -1}
+            else: # 채점 끝났음, 기존에 풀었고 task는 지워진지 오래
+                if not already_solved : # 틀렸으면 -> 여기로는 오면 안되는데 기존에 회원때매 일단 둠
+                    msg = { "result": 0, "last_try": 0} # -2 for exceptional case
+                else:
+                    msg = {"result": 1, "last_try": solver_obj.last_try}
         return Response(msg, status=200)
 
 class SkeletonService(serializers.Serializer):
