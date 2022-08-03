@@ -139,6 +139,7 @@ def solve(language, user_id, prob_num):
         print("사용자의 답, ", out.rstrip('\n'))
         print("정답, ", solution.rstrip('\n'))
         if out.strip() != solution.strip():
+            _del_user(user_id, container_id) 
             raise WrongImplementation("오답")
         print(f"{test_case_filename} 맞았삼")
 
