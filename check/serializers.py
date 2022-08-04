@@ -60,7 +60,7 @@ class SubmissionService(serializers.Serializer):
         if last_submit is not None:
             task = AsyncResult(last_submit.task_id)
             if not last_submit.finished and not task.ready():
-                return AutheticationFailed("아직 채점 중입니다.")
+                return AuthenticationFailed("아직 채점 중입니다.")
             if last_submit.submit_at + timedelta(seconds=30) > datetime.now():
                 time_remain = timedelta(seconds=30) - (datetime.now() - last_submit.submit_at)
                 raise AuthenticationFailed({
