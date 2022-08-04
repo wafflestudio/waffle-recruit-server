@@ -116,7 +116,7 @@ def solve(language, user_id, prob_num):
         runtest_proc = subprocess.Popen(f"bash ./scripts/run_test.sh {user_id} {prob_num} {language} {test_case_filename} {container_id}", shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)    
     
         try:
-            outs, errs = runtest_proc.communicate(timeout=1.1)
+            outs, errs = runtest_proc.communicate(timeout=1.5)
         except subprocess.TimeoutExpired:
             runtest_proc.kill()
             _del_user(user_id, container_id)
