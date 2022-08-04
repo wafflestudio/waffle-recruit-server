@@ -1,7 +1,6 @@
 #custom
 
 dump.rdb
-reset_all.sh
 user/migrations
 check/migrations
 problems/

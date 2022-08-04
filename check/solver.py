@@ -52,11 +52,19 @@ def _add_user(user_id, container_id):
     adduser_proc.communicate()
     return
 
+
+def _kill_process(user_id, container_id):
+
+    kill_proc = subprocess.Popen(f"bash ./scripts/kill_process.sh {user_id} {container_id}", shell=True)
+    kill_proc.wait()
+    kill_proc.communicate()
+    return
+
 def _del_user(user_id, container_id):
-    # #사용자 및 폴더 제거
-    deluser_proc = subprocess.Popen(f"bash ./scripts/del_user.sh {user_id} {container_id}", shell=True)
+    #사용자 및 폴더 제거
+    deluser_proc = subprocess.Popen(f"bash ./scripts/del_user.sh {user_id} {container_id}", shell=True, stderr=subprocess.PIPE)
     deluser_proc.wait()
-    deluser_proc.communicate()
+    out, err = deluser_proc.communicate()
     return
 
 
@@ -91,7 +99,6 @@ def solve(language, user_id, prob_num):
             raise CompileError("컴파일 에러")
 
     elif language == "c++":
-        print("CPP CAME!!")
         compile_proc = subprocess.Popen(f"g++ -std=c++11 {file_path}*.cpp -o {file_path}main.out", shell=True, stderr=subprocess.PIPE)
         compile_proc.wait()
         outs, errs = compile_proc.communicate()
@@ -113,15 +120,23 @@ def solve(language, user_id, prob_num):
     for test_case_filename, solution_filename in zip(testcases, solutions):
 
         # get answer from user
+
         runtest_proc = subprocess.Popen(f"bash ./scripts/run_test.sh {user_id} {prob_num} {language} {test_case_filename} {container_id}", shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)    
-    
+
         try:
             outs, errs = runtest_proc.communicate(timeout=1.5)
         except subprocess.TimeoutExpired:
-            runtest_proc.kill()
-            _del_user(user_id, container_id)
+            print("시간초과로 옴")
+            runtest_proc.kill() ## 여기 1
+            print("킬 하나 끝남")
+            _kill_process(user_id, container_id)
+            print("아예 리스타트?")
+            # print("킬 둘 끝남")
+            # _del_user(user_id, container_id) ## 여기 2
+            # print("여기도 끝남")
             raise TimeoutError("시간 초과")            
         except Exception as e:
+            print("시간초과 외 익셉션으로 옴")
             runtest_proc.kill()
             print(e)
             _del_user(user_id, container_id)

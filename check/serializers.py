@@ -57,15 +57,12 @@ class SubmissionService(serializers.Serializer):
             raise serializers.ValidationError("제출기간이 지났습니다.")
 
         last_submit = Submission.objects.filter(user=user).order_by('-submit_at').first()
-        if last_submit is not None:
-            task = AsyncResult(last_submit.task_id)
-            if not last_submit.finished and not task.ready():
-                raise AuthenticationFailed({"msg": "아직 채점 중입니다."})
-            if last_submit.submit_at + timedelta(seconds=30) > datetime.now():
-                time_remain = timedelta(seconds=30) - (datetime.now() - last_submit.submit_at)
-                raise AuthenticationFailed({
-                    "remain": int(time_remain.total_seconds())
-                })
+
+        if last_submit.submit_at + timedelta(seconds=30) > datetime.now():
+            time_remain = timedelta(seconds=30) - (datetime.now() - last_submit.submit_at)
+            raise AuthenticationFailed({
+                "remain": int(time_remain.total_seconds())
+            })
         self.context['last_submit'] = last_submit
         return data
     
