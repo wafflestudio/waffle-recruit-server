@@ -21,6 +21,7 @@ def run_solver(language, user_id, prob_num):
     except CompileError as e:
         return False, prob_num, {"error": "Compile error"}
     except TimeoutError as e:
+        print("task.py로 옴 ㅎ")
         return False, prob_num, {"error": "Timeout error"}
     except WrongImplementation as e:
         return False, prob_num, {"error": "Wrong implementation"}

@@ -30,7 +30,7 @@ FILTER = {
     "common": ["sudo", "gksudo", "rm -rf"],
     "c++": ["system(", "popen(", "fork(", "waitpid("], ## typescript -> cpp
     "python": ["__import__", "import os", "import subprocess", "import sys", "from os", "from subprocess","from sys",
-    ".system(", ".popen(", "exec("],
+    ".system(", ".popen(", "exec(", "importlib", "import_module"],
     "java": ["Runtime.", ".getRuntime(", ".exec(", "ProcessBuilder", "System.getProperty("],
     "javascript": ["exec(", "child_process", "spawn("],
     "kotlin": ["shellRun", "ShellLocation", "Runtime.", "getRuntime(", "exec(", "ProcessBuilder", ".command(", "Shell("]
@@ -58,7 +58,7 @@ class SubmissionService(serializers.Serializer):
 
         last_submit = Submission.objects.filter(user=user).order_by('-submit_at').first()
 
-        if last_submit.submit_at + timedelta(seconds=30) > datetime.now():
+        if last_submit is not None and last_submit.submit_at + timedelta(seconds=30) > datetime.now():
             time_remain = timedelta(seconds=30) - (datetime.now() - last_submit.submit_at)
             raise AuthenticationFailed({
                 "remain": int(time_remain.total_seconds())
@@ -90,7 +90,6 @@ class SubmissionService(serializers.Serializer):
 
         files = req_data['files']
         language = req_data['language']
-        print(language)
         for file in files:
             (res, filtered) = self._filtering(language, file['code'])
             if res==False:

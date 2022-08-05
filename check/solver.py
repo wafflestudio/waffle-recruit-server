@@ -1,6 +1,7 @@
 import os
 import subprocess
 import random ## test
+import sys
 from datetime import datetime ## test
 
 class RuntimeError(Exception):
@@ -17,6 +18,8 @@ class WrongImplementation(Exception):
 
 class InternalServerError(Exception):
     pass
+
+
 
 
 def _get_random(a, b): # inclu-inclu
@@ -62,14 +65,21 @@ def _kill_process(user_id, container_id):
 
 def _del_user(user_id, container_id):
     #사용자 및 폴더 제거
+    # print("del user 들어옴")
     deluser_proc = subprocess.Popen(f"bash ./scripts/del_user.sh {user_id} {container_id}", shell=True, stderr=subprocess.PIPE)
-    deluser_proc.wait()
-    out, err = deluser_proc.communicate()
+    # print("del_user Popen 끝남")
+    try:
+        deluser_proc.wait(timeout=1.5)
+        # print("del_user wait 끝남")
+        out, err = deluser_proc.communicate(timeout=1)
+    except Exception as e:
+        # print("아몰랑")
+        pass
+    # print("out, err 나옴")
     return
 
 
 def solve(language, user_id, prob_num):
-
     file_path = f"codes/{user_id}/{prob_num}/"
 
     if int(prob_num) in range(0, 4):
@@ -128,12 +138,9 @@ def solve(language, user_id, prob_num):
         except subprocess.TimeoutExpired:
             print("시간초과로 옴")
             runtest_proc.kill() ## 여기 1
-            print("킬 하나 끝남")
-            _kill_process(user_id, container_id)
-            print("아예 리스타트?")
-            # print("킬 둘 끝남")
-            # _del_user(user_id, container_id) ## 여기 2
-            # print("여기도 끝남")
+            # print("runtest_proc.kill 끝남")
+            _del_user(user_id, container_id) ## 여기 2
+            # print("del user 끝남")
             raise TimeoutError("시간 초과")            
         except Exception as e:
             print("시간초과 외 익셉션으로 옴")
