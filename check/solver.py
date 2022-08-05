@@ -158,8 +158,8 @@ def solve(language, user_id, prob_num):
         solution = solution_file.read()
         solution_file.close()
         out = outs.decode()
-        print("사용자의 답, ", out.rstrip('\n'))
-        print("정답, ", solution.rstrip('\n'))
+       # print("사용자의 답, ", out.rstrip('\n'))
+       # print("정답, ", solution.rstrip('\n'))
         if out.strip() != solution.strip():
             _del_user(user_id, container_id) 
             raise WrongImplementation("오답")

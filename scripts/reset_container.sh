@@ -11,12 +11,12 @@ sudo docker rm -f test6
 #sudo docker rm -f test11
 #sudo docker rm -f test12
 
-sudo docker create -it --network none --name test1 -m 512m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
-sudo docker create -it --network none --name test2 -m 512m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
-sudo docker create -it --network none --name test3 -m 512m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
-sudo docker create -it --network none --name test4 -m 512m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
-sudo docker create -it --network none --name test5 -m 512m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
-sudo docker create -it --network none --name test6 -m 512m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
+sudo docker create -it --network none --name test1 -m 768m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
+sudo docker create -it --network none --name test2 -m 768m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
+sudo docker create -it --network none --name test3 -m 768m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
+sudo docker create -it --network none --name test4 -m 768m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
+sudo docker create -it --network none --name test5 -m 768m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
+sudo docker create -it --network none --name test6 -m 768m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
 #sudo docker create -it --network none --name test7 -m 100m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
 #sudo docker create -it --network none --name test8 -m 100m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
 #sudo docker create -it --network none --name test9 -m 100m --cpus="1.5" whizkyu/recruit:1.2 > /dev/null
