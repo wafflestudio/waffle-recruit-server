@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '5hsh=^$_m-rn-6r5m5qiq*r1@wrhquf$ju@y&41wkv7e15uo12' # 배포 전까지만 켜놓을게요
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
