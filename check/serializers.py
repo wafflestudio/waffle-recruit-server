@@ -135,31 +135,37 @@ class ResultService(serializers.Serializer):
             submission_obj.finished=1 # 끝났다고 이야기해주고
             submission_obj.save() # 저장
             solved, original_prob_num, error = task.result
+            err_code = error.get('err_code', 0) # 에러코드 받아오기
+            err_msg = error.get('err_msg', '') # 에러 메세지 받아오기
             task.forget() # 태스크 지워주고 -> mry 관리에서 중요하다고 함
             if solved and not already_solved: # 지금 맞았고, 기존에 맞춘 적 없었으면
-                Solver.objects.create(user=user, prob_num=prob_num, last_try=1)
-                msg = { "result": 1, "last_try": 1 } 
+                Solver.objects.create(user=user, prob_num=prob_num, last_try=1, err_code=err_code, err_msg=err_msg)
+                msg = { "result": 1, "last_try": 1, "err_code": err_code, "err_msg": err_msg } 
             elif solved and already_solved: # 지금 맞았고, 기존에 맞춘 적 있었으면
                 solver_obj.last_try=1 
+                solver_obj.err_code = err_code
+                solver_obj.err_msg = err_msg
                 solver_obj.save()
-                msg = { "result": 1, "last_try": 1 }
+                msg = { "result": 1, "last_try": 1, "err_code": err_code, "err_msg": err_msg }
             elif not solved and already_solved: # 지금 틀렸고, 기존에 맞춘 적 있었으면
                 solver_obj.last_try=0 
+                solver_obj.err_code = err_code
+                solver_obj.err_msg = err_msg
                 solver_obj.save()
-                msg = { "result": 1, "last_try": 0 }
+                msg = { "result": 1, "last_try": 0, "err_code": err_code, "err_msg": err_msg }
             elif not solved and not already_solved: # 지금 틀렸고, 기존에도 틀렸으면
-                msg = { "result": 0, "last_try": 0 }
+                msg = { "result": 0, "last_try": 0, "err_code": err_code, "err_msg": err_msg }
         else:
             if not (submission_obj.finished) : # 채점 안끝났음
                 if not already_solved : # 푼적 없으면
-                    msg = {"result": 0, "last_try": -1}             
+                    msg = {"result": 0, "last_try": -1, "err_code": err_code, "err_msg": err_msg}             
                 else: # 푼적 있으면
-                    msg = {"result": 1, "last_try": -1}
+                    msg = {"result": 1, "last_try": -1, "err_code": err_code, "err_msg": err_msg}
             else: # 채점 끝났음, 기존에 풀었고 task는 지워진지 오래
                 if not already_solved : # 틀렸으면 -> 여기로는 오면 안되는데 기존에 회원때매 일단 둠
-                    msg = { "result": 0, "last_try": 0} # -2 for exceptional case
+                    msg = { "result": 0, "last_try": 0, "err_code": err_code, "err_msg": err_msg} # -2 for exceptional case
                 else:
-                    msg = {"result": 1, "last_try": solver_obj.last_try}
+                    msg = {"result": 1, "last_try": solver_obj.last_try, "err_code": solver_obj.err_code, "err_msg": solver_obj.err_msg}
         return Response(msg, status=200)
 
 class SkeletonService(serializers.Serializer):
