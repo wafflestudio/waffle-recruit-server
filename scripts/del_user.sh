@@ -1,4 +1,8 @@
 CREDENTIAL=$1
 CONTAINER_ID=$2
-sudo docker exec ${CONTAINER_ID} userdel ${CREDENTIAL} -r
+echo "sudo docker exec ${CONTAINER_ID} pkill -u ${CREDENTIAL}"
+sudo docker exec ${CONTAINER_ID} pkill -u ${CREDENTIAL}
+echo "sudo docker exec ${CONTAINER_ID} userdel -r ${CREDENTIAL}"
+sudo docker exec ${CONTAINER_ID} userdel -rf ${CREDENTIAL}
+echo "sudo docker exec ${CONTAINER_ID} rm -rf /home/${CREDENTIAL}"
 sudo docker exec ${CONTAINER_ID} rm -rf /home/${CREDENTIAL}

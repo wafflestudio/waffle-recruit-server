@@ -30,7 +30,7 @@ FILTER = {
     "common": ["sudo", "gksudo", "rm -rf"],
     "c++": ["system(", "popen(", "fork(", "waitpid("], ## typescript -> cpp
     "python": ["__import__", "import os", "import subprocess", "import sys", "from os", "from subprocess","from sys",
-    ".system(", ".popen(", "exec("],
+    ".system(", ".popen(", "exec(", "importlib", "import_module"],
     "java": ["Runtime.", ".getRuntime(", ".exec(", "ProcessBuilder", "System.getProperty("],
     "javascript": ["exec(", "child_process", "spawn("],
     "kotlin": ["shellRun", "ShellLocation", "Runtime.", "getRuntime(", "exec(", "ProcessBuilder", ".command(", "Shell("]
@@ -57,12 +57,12 @@ class SubmissionService(serializers.Serializer):
             raise serializers.ValidationError("제출기간이 지났습니다.")
 
         last_submit = Submission.objects.filter(user=user).order_by('-submit_at').first()
-        if last_submit is not None:
-            if last_submit.submit_at + timedelta(seconds=10) > datetime.now():
-                time_remain = timedelta(seconds=10) - (datetime.now() - last_submit.submit_at)
-                raise AuthenticationFailed({
-                    "remain": int(time_remain.total_seconds())
-                })
+
+        if last_submit is not None and last_submit.submit_at + timedelta(seconds=30) > datetime.now():
+            time_remain = timedelta(seconds=30) - (datetime.now() - last_submit.submit_at)
+            raise AuthenticationFailed({
+                "remain": int(time_remain.total_seconds())
+            })
         self.context['last_submit'] = last_submit
         return data
     
@@ -90,7 +90,6 @@ class SubmissionService(serializers.Serializer):
 
         files = req_data['files']
         language = req_data['language']
-        print(language)
         for file in files:
             (res, filtered) = self._filtering(language, file['code'])
             if res==False:
@@ -122,7 +121,7 @@ class ResultService(serializers.Serializer):
         user = self.context['request'].user
         prob_num = self.context['prob_num']
         
-        already_solved=False
+        already_solved=False # 기존에 맞았는지 여부
         solver_obj = Solver.objects.filter(user=user, prob_num=prob_num)
         if solver_obj.exists():
             solver_obj= solver_obj.first()
@@ -132,35 +131,39 @@ class ResultService(serializers.Serializer):
         task = AsyncResult(submission_obj.task_id)
 
         msg = {}
-        if task.ready(): # 채점이 끝났으면
-            submission_obj.finished=1 # 끝났다고 이야기해주고
-            submission_obj.save() # 저장
-            solved, original_prob_num, error = task.result
+        if task.ready(): # 현재 채점 끝
+            solved, original_prob_num, error = task.result # 채점 결과 받아오기
+            err_code = error.get('err_code', 0) # 에러코드 받아오기
+            err_msg = error.get('err_msg', '') # 에러 메세지 받아오기
+            submission_obj.finished=1 # 끝났다고 저장
+            submission_obj.err_code = err_code # 에러 코드 저장
+            submission_obj.err_msg = err_msg # 에러 메세지 저장
+            submission_obj.save()
             task.forget() # 태스크 지워주고 -> mry 관리에서 중요하다고 함
             if solved and not already_solved: # 지금 맞았고, 기존에 맞춘 적 없었으면
                 Solver.objects.create(user=user, prob_num=prob_num, last_try=1)
-                msg = { "result": 1, "last_try": 1 } 
+                msg = { "result": 1, "last_try": 1, "err_code": err_code, "err_msg": err_msg } 
             elif solved and already_solved: # 지금 맞았고, 기존에 맞춘 적 있었으면
                 solver_obj.last_try=1 
                 solver_obj.save()
-                msg = { "result": 1, "last_try": 1 }
+                msg = { "result": 1, "last_try": 1, "err_code": err_code, "err_msg": err_msg }
             elif not solved and already_solved: # 지금 틀렸고, 기존에 맞춘 적 있었으면
                 solver_obj.last_try=0 
                 solver_obj.save()
-                msg = { "result": 1, "last_try": 0 }
+                msg = { "result": 1, "last_try": 0, "err_code": err_code, "err_msg": err_msg }
             elif not solved and not already_solved: # 지금 틀렸고, 기존에도 틀렸으면
-                msg = { "result": 0, "last_try": 0 }
-        else:
-            if not (submission_obj.finished) : # 채점 안끝났음
+                msg = { "result": 0, "last_try": 0, "err_code": err_code, "err_msg": err_msg }
+        else: # 현재 채점 안 끝났거나 아니면 끝났는데 1번 이상 확인했꺼나
+            if not (submission_obj.finished) : # 채점이 안 끝난 경우 (채점 중)
                 if not already_solved : # 푼적 없으면
-                    msg = {"result": 0, "last_try": -1}             
+                    msg = {"result": 0, "last_try": -1, "err_code": 0, "err_msg": ''}             
                 else: # 푼적 있으면
-                    msg = {"result": 1, "last_try": -1}
-            else: # 채점 끝났음, 기존에 풀었고 task는 지워진지 오래
-                if not already_solved : # 틀렸으면 -> 여기로는 오면 안되는데 기존에 회원때매 일단 둠
-                    msg = { "result": 0, "last_try": 0} # -2 for exceptional case
-                else:
-                    msg = {"result": 1, "last_try": solver_obj.last_try}
+                    msg = {"result": 1, "last_try": -1, "err_code": 0, "err_msg": ''}
+            else: # 채점은 끝났는데 다시 확인할 경우
+                if not already_solved : # 이전에 맞은 적이 없는 경우
+                    msg = { "result": 0, "last_try": 0, "err_code": submission_obj.err_code, "err_msg": submission_obj.err_msg}
+                else: # 이전에 맞은 적이 있는 경우
+                    msg = {"result": 1, "last_try": solver_obj.last_try, "err_code": submission_obj.err_code, "err_msg": submission_obj.err_msg}
         return Response(msg, status=200)
 
 class SkeletonService(serializers.Serializer):
@@ -188,6 +191,7 @@ class LoadTestService(serializers.Serializer):
         return data
 
     def execute(self):
+        return Response({"msg": "only for test purpose"}, status=401)
         validated_data = self.validated_data
         user_id = "loadtest_user01"
         prob_num = "1"

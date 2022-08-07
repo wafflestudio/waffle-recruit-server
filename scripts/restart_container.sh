@@ -1,0 +1,25 @@
+sudo docker stop test1 > /dev/null
+sudo docker stop test2 > /dev/null
+sudo docker stop test3 > /dev/null
+sudo docker stop test4 > /dev/null
+sudo docker stop test5 > /dev/null
+sudo docker stop test6 > /dev/null
+sudo docker stop test7 > /dev/null
+sudo docker stop test8 > /dev/null
+sudo docker stop test9 > /dev/null
+sudo docker stop test10 > /dev/null
+sudo docker stop test11 > /dev/null
+sudo docker stop test12 > /dev/null
+
+sudo docker start test1 > /dev/null
+sudo docker start test2 > /dev/null
+sudo docker start test3 > /dev/null
+sudo docker start test4 > /dev/null
+sudo docker start test5 > /dev/null
+sudo docker start test6 > /dev/null
+sudo docker start test7 > /dev/null
+sudo docker start test8 > /dev/null
+sudo docker start test9 > /dev/null
+sudo docker start test10 > /dev/null
+sudo docker start test11 > /dev/null
+sudo docker start test12 > /dev/null

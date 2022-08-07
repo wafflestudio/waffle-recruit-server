@@ -118,8 +118,8 @@ class GithubCallbackService(serializers.Serializer):
             }
         ).json()
 
-        # user = User.objects.get_or_create(username=user_profile.get("login"), email=user_profile.get("email"))[0]
-        user = User.objects.get(username=user_profile.get("login"), email=user_profile.get("email"))
+        user = User.objects.get_or_create(username=user_profile.get("login"), email=user_profile.get("email"))[0]
+        # user = User.objects.get(username=user_profile.get("login"), email=user_profile.get("email"))
         update_last_login(None, user)
         user_data = UserSerializer(user).data
 

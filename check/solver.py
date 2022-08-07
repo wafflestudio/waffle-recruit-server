@@ -1,6 +1,7 @@
 import os
 import subprocess
 import random ## test
+import sys
 from datetime import datetime ## test
 
 class RuntimeError(Exception):
@@ -17,6 +18,8 @@ class WrongImplementation(Exception):
 
 class InternalServerError(Exception):
     pass
+
+
 
 
 def _get_random(a, b): # inclu-inclu
@@ -52,16 +55,31 @@ def _add_user(user_id, container_id):
     adduser_proc.communicate()
     return
 
+
+def _kill_process(user_id, container_id):
+
+    kill_proc = subprocess.Popen(f"bash ./scripts/kill_process.sh {user_id} {container_id}", shell=True)
+    kill_proc.wait()
+    kill_proc.communicate()
+    return
+
 def _del_user(user_id, container_id):
-    # #사용자 및 폴더 제거
-    deluser_proc = subprocess.Popen(f"bash ./scripts/del_user.sh {user_id} {container_id}", shell=True)
-    deluser_proc.wait()
-    deluser_proc.communicate()
+    #사용자 및 폴더 제거
+    # print("del user 들어옴")
+    deluser_proc = subprocess.Popen(f"bash ./scripts/del_user.sh {user_id} {container_id}", shell=True, stderr=subprocess.PIPE)
+    # print("del_user Popen 끝남")
+    try:
+        deluser_proc.wait(timeout=1.5)
+        # print("del_user wait 끝남")
+        out, err = deluser_proc.communicate(timeout=1)
+    except Exception as e:
+        # print("아몰랑")
+        pass
+    # print("out, err 나옴")
     return
 
 
 def solve(language, user_id, prob_num):
-
     file_path = f"codes/{user_id}/{prob_num}/"
 
     if int(prob_num) in range(0, 4):
@@ -91,7 +109,6 @@ def solve(language, user_id, prob_num):
             raise CompileError("컴파일 에러")
 
     elif language == "c++":
-        print("CPP CAME!!")
         compile_proc = subprocess.Popen(f"g++ -std=c++11 {file_path}*.cpp -o {file_path}main.out", shell=True, stderr=subprocess.PIPE)
         compile_proc.wait()
         outs, errs = compile_proc.communicate()
@@ -113,15 +130,20 @@ def solve(language, user_id, prob_num):
     for test_case_filename, solution_filename in zip(testcases, solutions):
 
         # get answer from user
+
         runtest_proc = subprocess.Popen(f"bash ./scripts/run_test.sh {user_id} {prob_num} {language} {test_case_filename} {container_id}", shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)    
-    
+
         try:
-            outs, errs = runtest_proc.communicate(timeout=1.1)
+            outs, errs = runtest_proc.communicate(timeout=1.5)
         except subprocess.TimeoutExpired:
-            runtest_proc.kill()
-            _del_user(user_id, container_id)
+            print("시간초과로 옴")
+            runtest_proc.kill() ## 여기 1
+            # print("runtest_proc.kill 끝남")
+            _del_user(user_id, container_id) ## 여기 2
+            # print("del user 끝남")
             raise TimeoutError("시간 초과")            
         except Exception as e:
+            print("시간초과 외 익셉션으로 옴")
             runtest_proc.kill()
             print(e)
             _del_user(user_id, container_id)
@@ -136,8 +158,8 @@ def solve(language, user_id, prob_num):
         solution = solution_file.read()
         solution_file.close()
         out = outs.decode()
-        print("사용자의 답, ", out.rstrip('\n'))
-        print("정답, ", solution.rstrip('\n'))
+       # print("사용자의 답, ", out.rstrip('\n'))
+       # print("정답, ", solution.rstrip('\n'))
         if out.strip() != solution.strip():
             _del_user(user_id, container_id) 
             raise WrongImplementation("오답")

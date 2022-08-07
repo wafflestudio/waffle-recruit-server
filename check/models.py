@@ -12,7 +12,9 @@ class Solver(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     solved_at = models.DateTimeField(auto_now_add=True)
     last_try = models.IntegerField(default=0)
-    
+    # err_code = models.IntegerField(default=0)
+    # err_msg = models.TextField(null=True)
+
     def __str__(self):
         return str(self.user.username)
 
@@ -21,4 +23,6 @@ class Submission(models.Model):
     prob_num = models.PositiveSmallIntegerField()
     task_id = models.CharField(max_length=36)
     submit_at = models.DateTimeField(auto_now_add=True)
-    finished = models.PositiveSmallIntegerField()
+    finished = models.PositiveSmallIntegerField(default=1)
+    err_code = models.IntegerField(default=0)
+    err_msg = models.TextField(null=True)
