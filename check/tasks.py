@@ -10,7 +10,7 @@ root_path = str(Path(__file__).parent.parent.resolve())
 @app.task(name='solver')
 def run_solver(language, user_id, prob_num):
     # if prob_num == 0:
-    #     return False, prob_num, {"error": "Wrong solution", "detail": "존재하지 않는 문제 번호입니다."}
+    #     return False, prob_num, {"err_code": 1, "err_msg": "Runtime error"}
     # return True, prob_num, {}
 
     try:
